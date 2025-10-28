@@ -39,7 +39,7 @@ describe('PokemonController (E2E with nock)', () => {
       });
 
     const res = await request(app.getHttpServer())
-      .get('/fetch-skills-by-pokemon-name-order-by-skill-name/pikachu')
+      .get('/pokemon/fetch-skills-by-pokemon-name-order-by-skill-name/pikachu')
       .expect(200);
 
     expect(res.body).toEqual({
@@ -54,7 +54,9 @@ describe('PokemonController (E2E with nock)', () => {
       .reply(200, { abilities: [] });
 
     const res = await request(app.getHttpServer())
-      .get('/fetch-skills-by-pokemon-name-order-by-skill-name/missingno')
+      .get(
+        '/pokemon/fetch-skills-by-pokemon-name-order-by-skill-name/missingno',
+      )
       .expect(200);
 
     expect(res.body).toEqual({
@@ -69,7 +71,9 @@ describe('PokemonController (E2E with nock)', () => {
       .replyWithError('network error');
 
     const res = await request(app.getHttpServer())
-      .get('/fetch-skills-by-pokemon-name-order-by-skill-name/charmander')
+      .get(
+        '/pokemon/fetch-skills-by-pokemon-name-order-by-skill-name/charmander',
+      )
       .expect(400);
 
     expect(res.body.statusCode).toBe(400);

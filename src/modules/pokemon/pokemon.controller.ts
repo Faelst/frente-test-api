@@ -1,7 +1,7 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { FetchSkillsByPokemonNameUseCase } from './use-cases/fetch-skills-by-pokemon-name.usecase';
 
-@Controller()
+@Controller('pokemon')
 export class PokemonController {
   constructor(
     private readonly FetchSkillsByPokemonNameUseCase: FetchSkillsByPokemonNameUseCase,

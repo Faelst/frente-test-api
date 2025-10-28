@@ -1,0 +1,100 @@
+name: CI
+
+on:
+    pull_request:
+        types: [opened, synchronize, reopened, ready_for_review]
+        branches: ["**"]
+        paths-ignore:
+            - "README.md"
+            - "**/*.md"
+    push:
+        branches: [main]
+
+concurrency:
+    group: ci-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    lint:
+        name: Lint
+        runs-on: ubuntu-latest
+        if: ${{ !github.event.pull_request.draft }} # não roda em PR como draft
+        strategy:
+            matrix:
+                node: [18.x, 20.x]
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Use Node ${{ matrix.node }}
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node }}
+                  cache: npm
+
+            - name: Install deps
+              run: npm ci
+
+            - name: Typecheck (opcional)
+              run: npm run typecheck --if-present
+
+            - name: Lint
+              run: npm run lint
+
+    unit:
+        name: Unit tests
+        runs-on: ubuntu-latest
+        if: ${{ !github.event.pull_request.draft }}
+        needs: [lint]
+        strategy:
+            matrix:
+                node: [18.x, 20.x]
+        env:
+            NODE_ENV: test
+            CI: "true"
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Use Node ${{ matrix.node }}
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node }}
+                  cache: npm
+
+            - name: Install deps
+              run: npm ci
+
+            - name: Run unit tests
+              run: npm run test
+
+    e2e:
+        name: E2E tests
+        runs-on: ubuntu-latest
+        if: ${{ !github.event.pull_request.draft }}
+        needs: [lint]
+        strategy:
+            matrix:
+                node: [18.x, 20.x]
+        env:
+            NODE_ENV: test
+            CI: "true"
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Use Node ${{ matrix.node }}
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node }}
+                  cache: npm
+
+            - name: Install deps
+              run: npm ci
+
+            - name: Build
+              run: npm run build
+
+            - name: Run E2E tests
+              run: npm run test:e2e

@@ -18,10 +18,10 @@ jobs:
     lint:
         name: Lint
         runs-on: ubuntu-latest
-        if: ${{ !github.event.pull_request.draft }} # não roda em PR como draft
+        if: ${{ !github.event.pull_request.draft }}
         strategy:
             matrix:
-                node: [18.x, 20.x]
+                node: [22.x]
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -30,16 +30,13 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version: ${{ matrix.node }}
-                  cache: npm
+                  cache: yarn
 
             - name: Install deps
-              run: npm ci
-
-            - name: Typecheck (opcional)
-              run: npm run typecheck --if-present
+              run: yarn install --frozen-lockfile
 
             - name: Lint
-              run: npm run lint
+              run: yarn run lint
 
     unit:
         name: Unit tests
@@ -48,7 +45,7 @@ jobs:
         needs: [lint]
         strategy:
             matrix:
-                node: [18.x, 20.x]
+                node: [22.x]
         env:
             NODE_ENV: test
             CI: "true"
@@ -60,13 +57,13 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version: ${{ matrix.node }}
-                  cache: npm
+                  cache: yarn
 
             - name: Install deps
-              run: npm ci
+              run: yarn install --frozen-lockfile
 
             - name: Run unit tests
-              run: npm run test
+              run: yarn run test
 
     e2e:
         name: E2E tests
@@ -75,7 +72,7 @@ jobs:
         needs: [lint]
         strategy:
             matrix:
-                node: [18.x, 20.x]
+                node: [22.x]
         env:
             NODE_ENV: test
             CI: "true"
@@ -88,13 +85,13 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version: ${{ matrix.node }}
-                  cache: npm
+                  cache: yarn
 
             - name: Install deps
-              run: npm ci
+              run: yarn install --frozen-lockfile
 
             - name: Build
-              run: npm run build
+              run: yarn run build
 
             - name: Run E2E tests
-              run: npm run test:e2e
+              run: yarn run test:e2e

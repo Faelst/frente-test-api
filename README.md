@@ -1,246 +1,260 @@
-Projeto NestJS + Prisma + PostgreSQL + Auth (JWT) + PokeAPI
+# 🧩 PokeDash API
 
-Este guia explica como:
+> API desenvolvida em **NestJS + TypeScript** com **Prisma ORM** e **PostgreSQL**, servindo como backend para o app mobile **PokeDash**.  
+> Inclui autenticação JWT, integração com a PokeAPI, testes automatizados e pipeline de CI/CD.
 
-Subir o PostgreSQL com Docker
+---
 
-Configurar .env
+## 🚀 Principais Features
 
-Gerar o client do Prisma e rodar migrations
+| Categoria                                               | Descrição                                                         |
+| ------------------------------------------------------- | ----------------------------------------------------------------- |
+| 🧠 **Arquitetura Limpa (Clean Architecture)**           | Separação entre camadas: controller → use-case → repository       |
+| 🔐 **Autenticação JWT**                                 | Rotas `/auth/signup` e `/auth/signin` com geração de token seguro |
+| 💾 **Prisma ORM + PostgreSQL**                          | Mapeamento de dados moderno e migrations automáticas              |
+| 🧪 **Testes Unitários e E2E (Jest + Supertest + Nock)** | Testes com mocks da PokeAPI e autenticação simulada               |
+| 🐳 **Docker + Docker Compose**                          | Subida automatizada do Postgres e da API                          |
+| 🧱 **CI/CD (GitHub Actions)**                           | Pipeline com lint, typecheck, testes unitários e e2e              |
+| 🧰 **Husky + Commitlint**                               | Padronização de commits e validação de código antes do push       |
+| 📦 **TypeScript + ESLint + Prettier**                   | Padrões consistentes e tipagem completa                           |
+| 🧩 **PokeAPI Integration**                              | Busca e ordenação de habilidades de Pokémon via endpoint externo  |
 
-Subir a API NestJS
+---
 
-Testar rotas principais
+## 📁 Estrutura do Projeto
 
-✅ Requisitos
+```
+api/
+├─ src/
+│  ├─ app.module.ts
+│  ├─ main.ts
+│  ├─ prisma/
+│  │  ├─ prisma.module.ts
+│  │  └─ prisma.service.ts
+│  ├─ modules/
+│  │  ├─ auth/
+│  │  │  ├─ use-cases/
+│  │  │  │  ├─ signin.usecase.ts
+│  │  │  │  └─ signup.usecase.ts
+│  │  │  ├─ auth.repository.ts
+│  │  │  ├─ auth.controller.ts
+│  │  │  ├─ dto/
+│  │  │  │  ├─ signin.dto.ts
+│  │  │  │  └─ signup.dto.ts
+│  │  └─ pokemon/
+│  │     ├─ use-cases/
+│  │     │  └─ fetch-skills-by-pokemon-name.usecase.ts
+│  │     └─ pokemon.controller.ts
+│  └─ shared/
+│     ├─ utils/
+│     └─ guards/
+├─ prisma/
+│  ├─ schema.prisma
+│  ├─ migrations/
+│  └─ prisma.config.ts
+├─ test/
+│  ├─ unit/
+│  └─ e2e/
+├─ docker-compose.yml
+└─ package.json
+```
 
-Node +22
+---
 
-Yarn ou npm
+## ⚙️ Setup do Ambiente
 
-Docker + Docker Compose
+### 1️⃣ Clone o projeto
 
-(Opcional) Postman/Insomnia ou curl
+```bash
+git clone https://github.com/seuusuario/pokedash-api.git
+cd pokedash-api
+```
 
-⚙️ 1. Variáveis de ambiente
+### 2️⃣ Crie o arquivo `.env`
 
-Crie o arquivo .env na raiz (onde fica a pasta prisma/):
-
+```env
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/app_db?schema=public"
 JWT_SECRET="super-secret-change-me"
 JWT_EXPIRES_IN="7d"
+```
 
-Se rodar tudo dentro do Docker (NestJS e Postgres no mesmo docker-compose), use postgres como host:
+> ⚠️ Caso use Docker, o host deve ser `postgres` (e não `localhost`).
 
-DATABASE_URL="postgresql://postgres:postgres@postgres:5432/app_db?schema=public"
+---
 
-Se você usa prisma.config.ts, ele já carrega dotenv:
+## 🐳 Subindo o Banco de Dados
 
-// prisma.config.ts
-import 'dotenv/config';
-import { defineConfig, env } from 'prisma/config';
-
-export default defineConfig({
-schema: 'prisma/schema.prisma',
-migrations: { path: 'prisma/migrations' },
-engine: 'classic',
-datasource: { url: env('DATABASE_URL') },
-});
-
-🐘 2. Subir o PostgreSQL com Docker
-
-Crie o docker-compose.yml (se ainda não existir) e suba apenas o banco:
-
+```bash
 docker-compose up -d postgres
+```
 
-Verifique:
+Verifique se o container está rodando:
 
+```bash
 docker ps
+# deve exibir o serviço postgres
+```
 
-# deve mostrar a porta 5432 exposta
+---
 
-🗄️ 3. Prisma – Generate & Migrate
+## 🧱 Prisma ORM
 
-Instale deps (se necessário):
+Gerar o client:
 
-yarn
-
-# ou: npm install
-
-Gere o client do Prisma:
-
+```bash
 yarn prisma:generate
+```
 
-# ou: npx prisma generate
+Criar migrations e aplicar:
 
-Crie/aplique as migrations (DEV):
-
+```bash
 yarn prisma:migrate
+```
 
-# ou: npx prisma migrate dev --name init
+Visualizar dados no Prisma Studio:
 
-Em produção/CI, use:
-
-yarn prisma:deploy
-
-# ou: npx prisma migrate deploy
-
-Abrir o Prisma Studio (opcional):
-
+```bash
 yarn prisma:studio
+```
 
-🚀 4. Rodar a API
+---
 
-Desenvolvimento (hot reload):
+## 🧩 Execução da API
 
+Modo desenvolvimento (hot reload):
+
+```bash
 yarn start:dev
+```
 
-# ou: npm run start:dev
+Build e execução em produção:
 
-Build + produção:
+```bash
+yarn build && yarn start:prod
+```
 
-yarn build
-yarn start:prod
+Acesse: [http://localhost:3000](http://localhost:3000)
 
-Por padrão a API sobe em http://localhost:3000
-.
+---
 
-🔑 5. Rotas principais
-POST /auth/signup
+## 🔑 Endpoints Principais
 
-Cria usuário.
+### POST `/auth/signup`
 
-Body
+Cria um novo usuário.
 
+```json
 {
-"name": "Rafael",
-"email": "fael@example.com",
-"password": "123456",
-"confirmPassword": "123456"
+  "name": "Ash",
+  "email": "ash@pokedash.com",
+  "password": "123456",
+  "confirmPassword": "123456"
 }
+```
 
-Resposta
+### POST `/auth/signin`
 
-{ "success": true }
+Autentica o usuário e retorna o token JWT.
 
-POST /auth/signin
-
-Autentica e retorna token JWT.
-
-Body
-
+```json
 {
-"email": "fael@example.com",
-"password": "123456"
+  "email": "ash@pokedash.com",
+  "password": "123456"
 }
+```
 
-Resposta
+### GET `/pokemon/fetch-skills-by-pokemon-name-order-by-skill-name/:name`
 
-{
-"token": "jwt_here",
-"name": "Rafael",
-"email": "fael@example.com"
-}
+Rota protegida (JWT). Retorna habilidades ordenadas do Pokémon.
 
-GET /pokemon/fetch-skills-by-pokemon-name-order-by-skill-name/:name
+---
 
-Rota autenticada (JWT Bearer).
-Exemplo com curl:
+## 🧪 Testes Automatizados
 
-TOKEN="coloque_o_token_aqui"
+Executar testes unitários e e2e:
 
-curl -H "Authorization: Bearer $TOKEN" \
- http://localhost:3000/pokemon/fetch-skills-by-pokemon-name-order-by-skill-name/pikachu
+```bash
+yarn test
+yarn test:e2e
+```
 
-Resposta (exemplo)
+Exemplo de teste E2E (com `nock`):
 
-{
-"pokemon": "pikachu",
-"abilities": ["lightning-rod", "static", "volt-absorb"]
-}
+```ts
+nock('https://pokeapi.co')
+  .get('/api/v2/pokemon/pikachu')
+  .reply(200, {
+    abilities: [
+      { ability: { name: 'static' } },
+      { ability: { name: 'lightning-rod' } },
+    ],
+  });
+```
 
-📜 Scripts úteis (package.json)
-{
-"scripts": {
-"start": "nest start",
-"start:dev": "nest start --watch",
-"start:prod": "node dist/main.js",
-"build": "nest build",
+---
 
-    "test": "jest",
-    "test:e2e": "jest --config ./test/jest-e2e.json",
-    "test:ci": "jest --ci --runInBand --passWithNoTests",
+## ⚙️ CI/CD – GitHub Actions
 
-    "lint": "eslint 'src/**/*.ts' --fix",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "typecheck": "tsc --noEmit",
+### 🧾 Workflow: `.github/workflows/ci.yml`
 
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev --name init",
-    "prisma:deploy": "prisma migrate deploy",
-    "prisma:studio": "prisma studio",
-    "prisma:reset": "prisma migrate reset --force",
+Executa automaticamente no **Pull Request**:
 
-    "db:up": "docker-compose up -d postgres",
-    "db:down": "docker-compose down",
-    "db:logs": "docker logs -f nest_postgres",
+```yaml
+name: CI
 
-    "prepare": "husky install"
+on:
+  pull_request:
+    branches: [main, develop]
 
-}
-}
+jobs:
+  test:
+    runs-on: ubuntu-latest
 
-Ajuste os scripts conforme seu setup. Se preferir npm, troque yarn por npm run.
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - run: yarn install --frozen-lockfile
+      - run: yarn lint
+      - run: yarn typecheck
+      - run: yarn test
+      - run: yarn test:e2e
+```
 
-🧪 Testes
+---
 
-Unitários: yarn test
+## 🧹 Husky + Commitlint
 
-E2E (com nock e supertest): yarn test:e2e
+Verificações automáticas antes do commit:
 
-No E2E, o JwtAuthGuard é sobrescrito para liberar acesso, e chamadas à PokeAPI são interceptadas por nock.
+- **Lint** (`eslint` + `prettier`)
+- **Testes unitários**
+- **Mensagem de commit** (padrão **Conventional Commits**)
 
-🛠️ Troubleshooting
+Scripts úteis:
 
-P1001: Can’t reach database server
+```bash
+yarn lint
+yarn format
+yarn typecheck
+yarn test
+yarn prepare
+```
 
-Verifique se o Postgres está rodando (docker ps)
+---
 
-Cheque a porta no docker-compose (ex.: 5432) e no .env
+## 🧠 Features Futuras
 
-Se usa Postgres.app no macOS, ele pode usar portas altas (512xx); alinhe a porta no .env.
+- [ ] Rate limiting com Redis
+- [ ] Cache da PokeAPI (TTL dinâmico)
+- [ ] Monitoramento com Prometheus
+- [ ] Integração com CI/CD para deploy automático em produção
 
-Missing required environment variable: DATABASE_URL
+---
 
-Confirme o .env na raiz (mesma pasta do prisma/)
+## 👨‍💻 Autor
 
-Se usa prisma.config.ts, ele já faz import 'dotenv/config' (ok).
-
-Evite ter DATABASE_URL exportada no shell conflitante (printenv | grep DATABASE_URL).
-
-supertest default import quebrando no Jest
-
-Habilite esModuleInterop no tsconfig.spec.json, ou importe como const request = require('supertest').
-
-📦 Estrutura (resumo)
-.
-├─ prisma/
-│ ├─ schema.prisma
-│ └─ migrations/
-├─ src/
-│ ├─ app.module.ts
-│ ├─ prisma/
-│ │ ├─ prisma.module.ts
-│ │ └─ prisma.service.ts
-│ ├─ modules/
-│ │ ├─ auth/ (use-cases + repository + controller + jwt)
-│ │ └─ pokemon/ (controller + use-case PokeAPI)
-└─ docker-compose.yml
-
-🤝 Contribuição
-
-Crie sua branch: feat/minha-feature
-
-Rode lint e testes antes de abrir PR
-
-Na PR, o CI valida: lint, unit, e2e
+**Rafael Silverio**  
+Desenvolvedor Fullstack Sênior • NestJS | Prisma | PostgreSQL | TypeScript  
+🚀 [LinkedIn](https://www.linkedin.com/in/rafael-silverio) | [GitHub](https://github.com/Faelst)

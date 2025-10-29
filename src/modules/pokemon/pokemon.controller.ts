@@ -1,6 +1,8 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { FetchSkillsByPokemonNameUseCase } from './use-cases/fetch-skills-by-pokemon-name.usecase';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('pokemon')
 export class PokemonController {
   constructor(
